@@ -1,0 +1,7 @@
+main.go
+dist/
+.idea/
+demo.tape
+img-resize.exe
+
+!/cmd/img-resize/main.go
