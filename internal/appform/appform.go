@@ -2,9 +2,10 @@ package appform
 
 import (
 	"errors"
-	"github.com/pawndev/resizeboy/internal/vars"
 	"os"
 	"strconv"
+
+	"github.com/pawndev/resizeboy/internal/vars"
 
 	"github.com/charmbracelet/huh"
 )

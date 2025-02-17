@@ -2,12 +2,13 @@ package app
 
 import (
 	"fmt"
-	"github.com/pawndev/resizeboy/internal/vars"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pawndev/resizeboy/internal/vars"
 
 	"github.com/pawndev/resizeboy/pkg/img"
 	"github.com/pawndev/resizeboy/pkg/task"

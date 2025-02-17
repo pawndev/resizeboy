@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+
 	"github.com/pawndev/resizeboy/internal/app"
 
 	"github.com/pawndev/resizeboy/internal/appform"
