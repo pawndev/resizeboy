@@ -2,6 +2,7 @@ package appform
 
 import (
 	"errors"
+	"github.com/pawndev/minui-image-resizer/internal/vars"
 	"os"
 	"strconv"
 
@@ -14,23 +15,14 @@ var (
 	ErrUserAborted     = huh.ErrUserAborted
 )
 
-type Vars struct {
-	InputDir        string
-	OutputDir       string
-	FileSuffix      string
-	ShouldAddSuffix bool
-	MaxWidth        string
-	OutFormat       string
-}
-
 type Form struct {
 	form *huh.Form
-	Vars *Vars
+	Vars *vars.Vars
 }
 
 func New() *Form {
 	mainForm := &Form{
-		Vars: &Vars{},
+		Vars: &vars.Vars{},
 	}
 	form := huh.NewForm(
 		huh.NewGroup(

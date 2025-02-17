@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"github.com/pawndev/minui-image-resizer/internal/app"
 
 	"github.com/pawndev/minui-image-resizer/internal/appform"
 	"github.com/pawndev/minui-image-resizer/pkg/tui"
@@ -17,8 +18,11 @@ func main() {
 		}
 	}
 
+	application := app.New(form.Vars)
+	application.Report = tui.Report
+
 	if err := loader.Run(func() {
-		App(form.Vars.InputDir, form.Vars.OutputDir, form.Vars.FileSuffix, form.Vars.MaxWidth, form.Vars.OutFormat, form.Vars.ShouldAddSuffix)
+		application.Run()
 	}); err != nil {
 		panic(err)
 	}

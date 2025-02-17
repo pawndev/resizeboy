@@ -1,7 +1,8 @@
-package main
+package app
 
 import (
 	"fmt"
+	"github.com/pawndev/minui-image-resizer/internal/vars"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/pawndev/minui-image-resizer/pkg/img"
 	"github.com/pawndev/minui-image-resizer/pkg/task"
-	"github.com/pawndev/minui-image-resizer/pkg/tui"
 	"github.com/remeh/sizedwaitgroup"
 )
 
@@ -18,15 +18,26 @@ const (
 	MaxGoRoutines = 50
 )
 
-func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddSuffix bool) {
-	files, err := os.ReadDir(inputDir)
+type App struct {
+	Vars   *vars.Vars
+	Report func(chan *task.Result, chan bool)
+}
+
+func New(vars *vars.Vars) *App {
+	return &App{
+		Vars: vars,
+	}
+}
+
+func (a *App) Run() {
+	files, err := os.ReadDir(a.Vars.InputDir)
 	if err != nil {
 		panic(err)
 	}
 
 	// Ensure the dist directory exists
-	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
-		err := os.MkdirAll(outputDir, os.ModeDir)
+	if _, err := os.Stat(a.Vars.OutputDir); os.IsNotExist(err) {
+		err := os.MkdirAll(a.Vars.OutputDir, os.ModeDir)
 		if err != nil {
 			panic(err)
 		}
@@ -38,7 +49,6 @@ func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddS
 	for _, file := range files {
 		swg.Add()
 		if file.IsDir() {
-			// fmt.Println(file.Name(), "is a directory. skipping...")
 			continue
 		}
 
@@ -54,7 +64,7 @@ func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddS
 				resChan <- res
 			}(res)
 
-			f, err := os.Open(filepath.Join(inputDir, dirEntry.Name()))
+			f, err := os.Open(filepath.Join(a.Vars.InputDir, dirEntry.Name()))
 			defer func(f *os.File) {
 				_ = f.Close()
 			}(f)
@@ -72,7 +82,7 @@ func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddS
 				return
 			}
 
-			w, err := strconv.ParseUint(maxWidth, 10, 64)
+			w, err := strconv.ParseUint(a.Vars.MaxWidth, 10, 64)
 			if err != nil {
 				res.Err = err
 				return
@@ -81,11 +91,11 @@ func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddS
 			i.Resize(uint(w))
 
 			outFilename := filename
-			if shouldAddSuffix {
-				outFilename = fmt.Sprintf("%s.%s", filename, fileSuffix)
+			if a.Vars.ShouldAddSuffix {
+				outFilename = fmt.Sprintf("%s.%s", filename, a.Vars.FileSuffix)
 			}
 
-			out, err := os.Create(filepath.Join(outputDir, fmt.Sprintf("%s.%s", outFilename, outFormat)))
+			out, err := os.Create(filepath.Join(a.Vars.OutputDir, fmt.Sprintf("%s.%s", outFilename, a.Vars.OutFormat)))
 			if err != nil {
 				res.Err = err
 				return
@@ -102,7 +112,7 @@ func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddS
 		doneChan <- true
 	}()
 
-	tui.Report(resChan, doneChan)
+	a.Report(resChan, doneChan)
 
 	close(resChan)
 }
