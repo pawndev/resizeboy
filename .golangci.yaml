@@ -1,0 +1,639 @@
+run:
+  concurrency: 4
+  # timeout for analysis, e.g. 30s, 5m, default is 1m
+  timeout: 5m
+
+
+  # exit code when at least one issue was found, default is 1
+
+  # include test files or not, default is true
+  tests: false
+
+  # by default isn't set. If set we pass it to "go list -mod={option}". From "go help modules":
+  # If invoked with -mod=readonly, the go command is disallowed from the implicit
+  # automatic updating of go.mod described above. Instead, it fails when any changes
+  # to go.mod are needed. This setting is most useful to check that go.mod does
+  # not need updates, such as in a continuous integration and testing system.
+  # If invoked with -mod=vendor, the go command assumes that the vendor
+  # directory holds the correct copies of dependencies and ignores
+  # the dependency descriptions in go.mod.
+  modules-download-mode: readonly
+
+
+# all available settings of specific linters
+linters-settings:
+  #  stylecheck:
+  #    # STxxxx checks in https://staticcheck.io/docs/configuration/options/#checks
+  #    # Default: ["*"]
+  ##    checks: [ "all", "-ST1000", "-ST1003", "-ST1016", "-ST1020", "-ST1021", "-ST1022" ]
+  #    checks: [ "all", "-ST1000" ]
+  #    # https://staticcheck.io/docs/configuration/options/#dot_import_whitelist
+  #    # Default: ["github.com/mmcloughlin/avo/build", "github.com/mmcloughlin/avo/operand", "github.com/mmcloughlin/avo/reg"]
+  ##    dot-import-whitelist:
+  ##      - fmt
+  #    # https://staticcheck.io/docs/configuration/options/#initialisms
+  #    # Default: ["ACL", "API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "QPS", "RAM", "RPC", "SLA", "SMTP", "SQL", "SSH", "TCP", "TLS", "TTL", "UDP", "UI", "GID", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XMPP", "XSRF", "XSS", "SIP", "RTP", "AMQP", "DB", "TS"]
+  #    initialisms: [ "ACL", "API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "QPS", "RAM", "RPC", "SLA", "SMTP", "SQL", "SSH", "TCP", "TLS", "TTL", "UDP", "UI", "GID", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XMPP", "XSRF", "XSS", "SIP", "RTP", "AMQP", "DB", "TS" ]
+  #    # https://staticcheck.io/docs/configuration/options/#http_status_code_whitelist
+  #    # Default: ["200", "400", "404", "500"]
+  #    http-status-code-whitelist: []
+  ireturn:
+    # ireturn allows using `allow` and `reject` settings at the same time.
+    # Both settings are lists of the keywords and regular expressions matched to interface or package names.
+    # keywords:
+    # - `empty` for `interface{}`
+    # - `error` for errors
+    # - `stdlib` for standard library
+    # - `anon` for anonymous interfaces
+
+    # By default, it allows using errors, empty interfaces, anonymous interfaces,
+    # and interfaces provided by the standard library.
+    allow:
+      - anon
+      - error
+      - empty
+      - stdlib
+      - go.opentelemetry.io\/otel\/trace
+      # You can specify idiomatic endings for interface
+  #      - (or|er)$
+  #    # reject-list of interfaces
+  #    reject:
+  #      - github.com\/user\/package\/v4\.Type
+  nestif:
+    # Minimal complexity of if statements to report.
+    # Default: 5
+    min-complexity: 10 # TODO: voir avec l'équipe si on prend le temps de refactoré nos service, idéalement 5-6
+  dogsled:
+    # Checks assignments with too many blank identifiers.
+    # Default: 2
+    max-blank-identifiers: 3
+  exhaustive:
+    # Program elements to check for exhaustiveness.
+    # Default: [ switch ]
+    check:
+      - switch
+      - map
+  funlen:
+    # Checks the number of lines in a function.
+    # If lower than 0, disable the check.
+    # Default: 60
+    lines: 100
+    # Checks the number of statements in a function.
+    # If lower than 0, disable the check.
+    # Default: 40
+    statements: 60
+  gocritic:
+    # Settings passed to gocritic.
+    # The settings key is the name of a supported gocritic checker.
+    # The list of supported checkers can be find in https://go-critic.github.io/overview.
+    # Due to a bug here: https://github.com/golangci/golangci-lint/issues/3690 we need to disable it.
+    disabled-checks:
+      - commentFormatting
+    settings:
+      captLocal:
+        # Whether to restrict checker to params only.
+        # Default: true
+        paramsOnly: false
+      underef:
+        # Whether to skip (*x).method() calls where x is a pointer receiver.
+        # Default: true
+        skipRecvDeref: false
+  nolintlint:
+    # Exclude following linters from requiring an explanation.
+    # Default: []
+    allow-no-explanation: [ funlen, gocognit, lll ]
+    # Enable to require an explanation of nonzero length after each nolint directive.
+    # Default: false
+    require-explanation: true
+    # Enable to require nolint directives to mention the specific linter being suppressed.
+    # Default: false
+    require-specific: true
+  rowserrcheck:
+    # database/sql is always checked
+    # Default: []
+    packages:
+      - github.com/jmoiron/sqlx
+  tenv:
+    # The option `all` will run against whole test files (`_test.go`) regardless of method/function signatures.
+    # Otherwise, only methods that take `*testing.T`, `*testing.B`, and `testing.TB` as arguments are checked.
+    # Default: false
+    all: true
+  govet:
+    # report about shadowed variables
+    disable:
+      - fieldalignment # too strict
+    # settings per analyzer
+    settings:
+      printf: # analyzer name, run `go tool vet help` to see all analyzers
+        funcs: # run `go tool vet help printf` to see available settings for `printf` analyzer
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+  gocyclo:
+    # minimal code complexity to report, 30 by default (but we recommend 10-20)
+    min-complexity: 15
+  cyclop:
+    # The maximal code complexity to report.
+    # Default: 10
+    max-complexity: 15
+    # The maximal average package complexity.
+    # If it's higher than 0.0 (float) the check is enabled
+    # Default: 0.0
+    # package-average: 10.0
+  goconst:
+    # minimal length of string constant, 3 by default
+    min-len: 2
+    # minimal occurrences count to trigger, 3 by default
+    min-occurrences: 2
+  gosec:
+    excludes:
+      - G106 # Use of ssh InsecureIgnoreHostKey should be audited
+      - G304 # Potential file inclusion via variable
+  errcheck:
+    # report about not checking of errors in type assertions: `a := b.(MyStruct)`;
+    # default is false: such cases aren't reported by default.
+    check-type-assertions: true
+  errorlint:
+    asserts: false
+  lll:
+    # max line length, lines longer will be reported. Default is 120.
+    # '\t' is counted as 1 character by default, and can be changed with the tab-width option
+    line-length: 160
+    # tab width in spaces. Default to 1.
+    tab-width: 1
+  unused:
+    # treat code as a program (not a library) and report unused exported identifiers; default is false.
+    # XXX: if you enable this setting, unused will report a lot of false-positives in text editors:
+    # if it's called for subdir of a project it can't find funcs usages. All text editor integrations
+    # with golangci-lint call it on a directory with the changed file.
+    exported-fields-are-used: false
+  unparam:
+    # Inspect exported functions, default is false. Set to true if no external program/library imports your code.
+    # XXX: if you enable this setting, unparam will report a lot of false-positives in text editors:
+    # if it's called for subdir of a project it can't find external interfaces. All text editor integrations
+    # with golangci-lint call it on a directory with the changed file.
+    check-exported: false
+  nakedret:
+    # make an issue if func has more lines of code than this setting and it has naked returns; default is 30
+    #    max-func-lines: 30
+    max-func-lines: 0
+  #  interfacebloat:
+  #    # The maximum number of methods allowed for an interface.
+  #    # Default: 10
+  #    max: 5
+  gomodguard:
+    blocked:
+      # List of blocked modules.
+      # Default: []
+      modules:
+        - github.com/golang/protobuf:
+            recommendations:
+              - google.golang.org/protobuf
+            reason: "see https://developers.google.com/protocol-buffers/docs/reference/go/faq#modules"
+        - github.com/satori/go.uuid:
+            recommendations:
+              - github.com/google/uuid
+            reason: "satori's package is not maintained"
+        - github.com/gofrs/uuid:
+            recommendations:
+              - github.com/google/uuid
+            reason: "gofrs' package is not go module"
+        - io/ioutil:
+            recommendations:
+              - io
+              - os
+            reason: "io/ioutil is deprecated"
+  revive:
+    rules:
+      - name: atomic
+        severity: warning
+        disabled: false
+      - name: banned-characters
+        severity: warning
+        disabled: false
+        arguments: [ "Ω", "Σ", "σ", "7" ]
+      - name: blank-imports
+        severity: warning
+        disabled: false
+      - name: bool-literal-in-expr
+        severity: warning
+        disabled: false
+      - name: call-to-gc
+        severity: warning
+        disabled: false
+      - name: confusing-naming
+        severity: warning
+        disabled: false
+      - name: confusing-results
+        severity: warning
+        disabled: false
+      - name: constant-logical-expr
+        severity: warning
+        disabled: false
+      - name: context-as-argument # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#context-as-argument
+        severity: warning
+        disabled: false
+        arguments:
+          - allowTypesBefore: "*testing.T"
+      - name: context-keys-type
+        severity: warning
+        disabled: false
+      - name: datarace
+        severity: warning
+        disabled: false
+      - name: defer
+        severity: warning
+        disabled: false
+        arguments:
+          - [ "call-chain", "loop" ]
+      - name: dot-imports
+        severity: warning
+        disabled: false
+      - name: duplicated-imports
+        severity: warning
+        disabled: false
+      - name: early-return
+        severity: warning
+        disabled: false
+      - name: empty-block
+        severity: warning
+        disabled: false
+      - name: empty-lines
+        severity: warning
+        disabled: false
+      - name: error-naming
+        severity: warning
+        disabled: false
+      - name: error-return
+        severity: warning
+        disabled: false
+      - name: error-strings
+        severity: warning
+        disabled: false
+      - name: errorf
+        severity: warning
+        disabled: false
+      - name: function-result-limit
+        severity: warning
+        disabled: false
+        arguments: [ 3 ]
+      - name: get-return
+        severity: warning
+        disabled: false
+      - name: identical-branches
+        severity: warning
+        disabled: false
+      - name: if-return
+        severity: warning
+        disabled: false
+      - name: indent-error-flow
+        severity: warning
+        disabled: false
+      - name: import-shadowing
+        severity: warning
+        disabled: true # TODO: A activer et corriger
+      - name: modifies-parameter
+        severity: warning
+        disabled: false
+      - name: modifies-value-receiver
+        severity: warning
+        disabled: false
+      - name: nested-structs
+        severity: warning
+        disabled: true # TODO: j'aimerai, a parler avec l'équipe
+      - name: optimize-operands-order
+        severity: warning
+        disabled: false
+      - name: range
+        severity: warning
+        disabled: false
+      - name: range-val-in-closure
+        severity: warning
+        disabled: false
+      - name: range-val-address
+        severity: warning
+        disabled: false
+      - name: receiver-naming
+        severity: warning
+        disabled: false
+      - name: receiver-naming # todo: a revoir en fonction des projets je pense
+        severity: warning
+        disabled: false
+      - name: redefines-builtin-id
+        severity: warning
+        disabled: false
+      - name: string-of-int
+        severity: warning
+        disabled: false
+      - name: struct-tag
+        severity: warning
+        disabled: false
+        arguments: ["json,inline","bson,outline,gnu"]
+      - name: superfluous-else
+        severity: warning
+        disabled: false
+      - name: time-equal
+        severity: warning
+        disabled: false
+      - name: time-naming
+        severity: warning
+        disabled: false
+      - name: var-declaration
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unconditional-recursion
+      - name: unconditional-recursion
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unexported-naming
+      #      - name: unexported-naming
+      #        severity: warning
+      #        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unexported-return
+      - name: unexported-return
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unhandled-error
+      - name: unhandled-error
+        severity: warning
+        disabled: false
+        arguments:
+          - "fmt.Printf"
+          - "myFunction"
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unnecessary-stmt
+      - name: unnecessary-stmt
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unreachable-code
+      - name: unreachable-code
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unused-parameter
+      - name: unused-parameter
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unused-receiver
+      - name: unused-receiver
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#useless-break
+      - name: useless-break
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#waitgroup-by-value
+      - name: waitgroup-by-value
+        severity: warning
+        disabled: false
+#      - name: var-naming # duplica d'un autre linter
+#        severity: warning
+#        disabled: false
+#        arguments:
+#          - [ "ID" ] # AllowList
+#          - [ "VM" ] # DenyList
+#      - name: string-format
+#        severity: warning
+#        disabled: false
+#        arguments:
+#          - - 'core.WriteError[1].Message'
+#            - '/^([^A-Z]|$)/'
+#            - must not start with a capital letter
+#          - - 'fmt.Errorf[0]'
+#            - '/(^|[^\.!?])$/'
+#            - must not end in punctuation
+#          - - panic
+#            - '/^[^\n]*$/'
+#            - must not contain line breaks
+#      - name: max-public-structs
+#        severity: warning
+#        disabled: false
+#        arguments: [ 3 ]
+#      - name: line-length-limit # duplica de lll
+#        severity: warning
+#        disabled: false
+#        arguments: [ 120 ]
+#      - name: imports-blacklist # duplica de gomodguard
+#        severity: warning
+#        disabled: false
+#        arguments:
+#          - "crypto/md5"
+#          - "crypto/sha1"
+#      - name: increment-decrement # je trouve pas nécéssaire i += 1 ou i++ peu m'importe
+#        severity: warning
+#        disabled: false
+#      - name: function-length # duplica de funlen
+#        severity: warning
+#        disabled: false
+#        arguments: [ 10, 0 ]
+#      - name: flag-parameter # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#flag-parameter # todo: peut etre intéréssant, à discuter avec l'équipe
+#        severity: warning
+#        disabled: false
+#      - name: deep-exit
+#        severity: warning
+#        disabled: false
+#      - name: cyclomatic # Duplica de gocyclo
+#        severity: warning
+#        disabled: false
+#        arguments: [ 3 ]
+#      - name: argument-limit
+#        severity: warning
+#        disabled: false # TODO: a revoir plus tard, mais peut être sympas de se fixer une limite
+#        arguments: [ 4 ]
+#      - name: exported
+#        severity: warning
+#        disabled: false # TODO: Il faudrait se mettre à documenter un peu plus nos package, pour réactiver celui la
+#        arguments:
+#          - "sayRepetitiveInsteadOfStutters"
+#      - name: package-comments # TODO: Il faudrait se mettre à documenter un peu plus nos package, pour réactiver celui la
+#        severity: warning
+#        disabled: false
+#      - name: add-constant
+#        severity: warning
+#        disabled: false # Remplacé partiellement par mnd et goconst
+#        arguments:
+#          - maxLitCount: "3"
+#            allowStrs: '""'
+#            allowInts: "0,1,2"
+#            allowFloats: "0.0,0.,1.0,1.,2.0,2."
+#      - name: bare-return # TODO: duplica avec le linter nakedret ?
+#        severity: warning
+#        disabled: false
+#      - name: cognitive-complexity # Duplica de gocognit
+#        severity: warning
+#        disabled: false
+#        arguments: [ 7 ]
+#      - name: comment-spacings # d'autre linter font déjà ce role
+#        severity: warning
+#        disabled: false
+#        arguments:
+#          - mypragma
+#          - otherpragma
+
+linters:
+  enable:
+    ## enabled by default
+    - errcheck  # checking for unchecked errors, these unchecked errors can be critical bugs in some cases
+    - gosimple # Linter for Go source code that specializes in simplifying code
+    - govet # examines Go source code and reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
+    - ineffassign # Detects when assignments to existing variables are not used
+    - staticcheck # set of rules from staticcheck. It's not the same thing as the staticcheck binary
+    - typecheck # parses and type-checks Go code
+    - unused # Checks Go code for unused constants, variables, functions and types
+    ##    ## enabled by choice
+    - asasalint # checks for pass []any as any in variadic func(...any)
+    - asciicheck # checks that your code does not contain non-ASCII identifiers
+    - bidichk # checks for dangerous unicode character sequences
+    - bodyclose # checks whether HTTP response body is closed successfully
+    - decorder # ordre declaration -> const -> var -> func
+    - dogsled # checks assignments with too many blank identifiers (e.g. x, _, _, _, := f())
+    - durationcheck # checks for two durations multiplied together
+    - errorlint # finds code that will cause problems with the error wrapping scheme introduced in Go 1.13
+    - errname # checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error
+    - usestdlibvars # detect the possibility to use variables/constants from the Go standard library
+    - exhaustive # checks exhaustiveness of enum switch statements
+    #    - funlen # tool for detection of long functions
+    - gocheckcompilerdirectives # validates go compiler directive comments (//go:)
+    - goconst # finds repeated strings that could be replaced by a constant
+    #    - gocritic # provides diagnostics that check for bugs, performance and style issues
+    - goimports # in addition to fixing imports, goimports also formats your code in the same style as gofmt
+    - mnd # detects magic numbers
+    - gomoddirectives # manages the use of 'replace', 'retract', and 'excludes' directives in go.mod
+    - gomodguard # allow and block lists linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations
+    - goprintffuncname # checks that printf-like functions are named with f at the end
+    - gosec # inspects source code for security problems
+    - lll # reports long lines
+    - loggercheck # checks key value pairs for common logger libraries (kitlog,klog,logr,zap)
+    - makezero # finds slice declarations with non-zero initial length
+    - nestif # reports deeply nested if statements
+    - nilerr # finds the code that returns nil even if it checks that the error is not nil
+    - nilnil # checks that there is no simultaneous return of nil error and an invalid value
+    - interfacebloat # checks the number of methods inside an interface
+    - ireturn # accept interfaces, return concrete types
+    - noctx # finds sending http request without context.Context
+    - nolintlint # reports ill-formed or insufficient nolint directives
+    - nosprintfhostport # checks for misuse of Sprintf to construct a host with port in a URL
+    - predeclared # finds code that shadows one of Go's predeclared identifiers
+    - reassign # checks that package variables are not reassigned
+    - revive # fast, configurable, extensible, flexible, and beautiful linter for Go, drop-in replacement of golint
+    - rowserrcheck # checks whether Err of rows is checked successfully
+    - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
+    #    - stylecheck # is a replacement for golint # TODO: pas doublon avec revive ? # TODO: a réactiver après les autres fix
+    - testableexamples # checks if examples are testable (have an expected output)
+    - thelper # detects golang test helpers without t.Helper() call and checks the consistency of test helpers
+    - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes
+    - unconvert # removes unnecessary type conversions
+    - unparam # reports unused function parameters
+    - wastedassign # finds wasted assignment statements
+    - whitespace # detects leading and trailing whitespace
+
+    # MAYBE ?
+    #- cyclop # calcul de complexité, # vu avec @tigerwill90 augment la complexité min à 15 et on revoit au cas par cas
+    #- gocyclo # computes and checks the cyclomatic complexity of functions # TODO: comme cyclop, a revoir
+    #- gocognit # computes and checks the cognitive complexity of functions # TODO: comme cyclop, a revoir
+    #- gochecknoglobals # checks that no global variables exist
+    #- gochecknoinits # checks that no init functions are present in Go code
+    #- godot # checks if comments end in a period
+    #- wrapcheck # checks that errors returned from external packages are wrapped # TODO: peut être cool a activer # a voir pour le faire uniquement sur les methodes exposé du package
+    #- musttag # enforces field tags in (un)marshaled structs # TODO: faudrait d'abord clean nos struct et vérifier les output # a activer sur les new projets ou refacto total
+    #- promlinter # checks Prometheus metrics naming via promlint # TODO: sur les nouveaux projets
+    #- nakedret # finds naked returns in functions greater than a specified function length # TODO: utile ?
+
+    # DEPRECATED
+    #    - ifshort
+    #- interface # dommage, c'était sympas
+    #- maligned
+    #- nosnakecase # replaced by revive var-naming
+    #- golint # replaced by revive
+    #- scopelint # replaced by exportloopref
+    #- structcheck # replace by unused
+    #- varcheck
+    #- depguard # [replaced by gomodguard] checks if package imports are in a list of acceptable packages
+
+    # DISABLED
+    #- ginkgolinter # [if you use ginkgo/gomega] enforces standards of using ginkgo and gomega
+    #- gofmt # [replaced by goimports] checks whether code was gofmt-ed
+    #- gofumpt # [replaced by goimports, gofumports is not available yet] checks whether code was gofumpt-ed
+    #- goheader # checks is file header matches to pattern # On fait pas de header nous
+    #- grouper # analyzes expression groups
+    #- importas # enforces consistent import aliases
+    #- maintidx # measures the maintainability index of each function
+    #- paralleltest # detects missing usage of t.Parallel() method in your Go test # beaucoup de faux positifs
+    #- prealloc # finds slice declarations that could potentially be preallocated
+    #- varnamelen # checks that the length of a variable's name matches its scope # beaucoup de faux positifs
+    #- wsl # whitespace linter forces you to use empty lines
+    #- contextcheck # checks the function whether use a non-inherited context # beaucoup de faux positifs
+    #- dupword # checks for duplicate words in the source code
+    #- errchkjson # Checks types passed to the json encoding functions. Reports unsupported types and optionally reports occasions, where the check for the returned error can be omitted. # je trouve pas utile, ignorer des erreurs ? Quelle idée saugrenu
+    #- misspell # finds commonly misspelled English words in comments
+    #- dupl # tool for code clone detection
+    #- godox # detects FIXME, TODO and other comment keywords
+    #- goerr113 # [too strict] checks the errors handling expressions
+    #- containedctx # containedctx is a linter that detects struct contained context.Context field
+    #- nlreturn # checks for a new line before return and branch statements to increase code clarity
+    #- nonamedreturns # reports all named returns
+    #- tagliatelle # checks the struct tags # TODO: a revoir
+    #- testpackage # makes you use a separate _test package
+    #- exhaustruct # checks if all structure fields are initialized
+    #- forbidigo # forbids identifiers
+    #- gci # controls golang package import order and makes it always deterministic # duplica golang imports
+  enable-all: false
+  disable-all: true
+  fast: false
+
+
+issues:
+  # Excluding configuration per-path, per-linter, per-text and per-source
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: _test\.go
+      linters:
+        #        - gocyclo
+        - errcheck
+        - gosec
+        - funlen
+        - goconst
+        - gochecknoglobals
+        - gocritic
+        - lll
+        - noctx
+        - wrapcheck
+        - gomnd
+        - revive
+    - path: testsutils/
+      linters:
+        #        - gocyclo
+        - errcheck
+        - gosec
+        - funlen
+        - gochecknoglobals
+        - gocritic
+        - lll
+        - wrapcheck
+        - gomnd
+        - revive
+    - path: internal/version/
+      linters:
+        - gochecknoglobals
+    - source: "//noinspection"
+      linters: [ gocritic ]
+      # Exclude `lll` issues for long lines with `go:generate`.
+    - source: "^//go:generate "
+      linters:
+        - lll
+    - source: "(noinspection|TODO)"
+      linters: [ godot, lll ]
+
+  # Independently from option `exclude` we use default exclude patterns,
+  # it can be disabled by this option. To list all
+  # excluded by default patterns execute `golangci-lint run --help`.
+  # Default value for this option is true.
+  exclude-use-default: false
+
+  # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
+  #  max-issues-per-linter: 0
+
+  # Maximum count of issues with the same text. Set to 0 to disable. Default is 3.
+  #  max-same-issues: 0
+
+  # Show only new issues created after git revision `REV`
+  new-from-rev: ""
