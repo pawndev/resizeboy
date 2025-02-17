@@ -19,6 +19,9 @@ Here are some of the devices I own:
 - And so much more...
 </details>
 
+## Demo time !
+![demo](./demo.gif)
+
 ## Installation
 
 You can download the latest release from the [release page](https://github.com/pawndev/img-resizer/releases).
