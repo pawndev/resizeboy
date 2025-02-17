@@ -2,12 +2,13 @@ package img
 
 import (
 	"errors"
-	"github.com/nfnt/resize"
-	"golang.org/x/image/webp"
 	"image"
 	"image/jpeg"
 	"image/png"
 	"io"
+
+	"github.com/nfnt/resize"
+	"golang.org/x/image/webp"
 )
 
 type Format string
@@ -48,7 +49,6 @@ func Open(r io.Reader) (*Img, error) {
 	return &Img{
 		Image: img,
 	}, nil
-
 }
 
 func (i *Img) Resize(width uint) {

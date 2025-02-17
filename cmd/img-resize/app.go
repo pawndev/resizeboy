@@ -2,13 +2,20 @@ package main
 
 import (
 	"fmt"
-	"github.com/pawndev/minui-image-resizer/pkg/img"
-	"github.com/remeh/sizedwaitgroup"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pawndev/minui-image-resizer/pkg/img"
+	"github.com/pawndev/minui-image-resizer/pkg/task"
+	"github.com/pawndev/minui-image-resizer/pkg/tui"
+	"github.com/remeh/sizedwaitgroup"
+)
+
+const (
+	MaxGoRoutines = 50
 )
 
 func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddSuffix bool) {
@@ -19,36 +26,38 @@ func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddS
 
 	// Ensure the dist directory exists
 	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
-		err := os.MkdirAll(outputDir, os.ModePerm)
+		err := os.MkdirAll(outputDir, os.ModeDir)
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	swg := sizedwaitgroup.New(50)
-	resChan := make(chan *Result, len(files))
+	swg := sizedwaitgroup.New(MaxGoRoutines)
+	resChan := make(chan *task.Result, len(files))
 	doneChan := make(chan bool)
 	for _, file := range files {
 		swg.Add()
 		if file.IsDir() {
-			fmt.Println(file.Name(), "is a directory. skipping...")
+			// fmt.Println(file.Name(), "is a directory. skipping...")
 			continue
 		}
 
 		go func(dirEntry os.DirEntry) {
 			defer swg.Done()
 			start := time.Now()
-			res := &Result{
+			res := &task.Result{
 				FileName: dirEntry.Name(),
 			}
 
-			defer func(result *Result) {
-				res.Duration = time.Since(start)
+			defer func(r *task.Result) {
+				r.Duration = time.Since(start)
 				resChan <- res
 			}(res)
 
 			f, err := os.Open(filepath.Join(inputDir, dirEntry.Name()))
-			defer f.Close()
+			defer func(f *os.File) {
+				_ = f.Close()
+			}(f)
 			if err != nil {
 				res.Err = err
 				return
@@ -84,7 +93,6 @@ func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddS
 			err = i.Encode(img.PNGFormat, out)
 			if err != nil {
 				res.Err = err
-				fmt.Println("Error encoding image: ", err)
 			}
 		}(file)
 	}
@@ -94,15 +102,7 @@ func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddS
 		doneChan <- true
 	}()
 
-	Report(resChan, doneChan)
+	tui.Report(resChan, doneChan)
 
 	close(resChan)
-
-	//for res := range resChan {
-	//	if res.Err != nil {
-	//		fmt.Println("Error processing file: ", res.FileName, " - ", res.Err)
-	//	} else {
-	//		fmt.Println("Processed file: ", res.FileName)
-	//	}
-	//}
 }

@@ -1,23 +1,24 @@
-package main
+package tui
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"os"
+	"github.com/pawndev/minui-image-resizer/pkg/task"
 )
 
 var (
 	spinnerStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 	helpStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Margin(1, 0)
-	dotStyle     = helpStyle.UnsetMargins()
-	appStyle     = lipgloss.NewStyle().Margin(1, 2, 0, 2)
+	appStyle     = lipgloss.NewStyle().Margin(1, 2, 0, 2) //nolint:mnd // because of the margin values
 )
 
 type model struct {
 	spinner  spinner.Model
-	results  []*Result
+	results  []*task.Result
 	quitting bool
 }
 
@@ -26,7 +27,7 @@ func newModel() model {
 	s.Style = spinnerStyle
 	return model{
 		spinner:  s,
-		results:  []*Result{},
+		results:  []*task.Result{},
 		quitting: false,
 	}
 }
@@ -61,13 +62,13 @@ func (m model) View() string {
 	return appStyle.Render(s)
 }
 
+//nolint:ireturn // I do it the way bubbletea wants me to do
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		m.quitting = true
 		return m, tea.Quit
-	case *Result:
-		//m.results = append(m.results[1:], msg)
+	case *task.Result:
 		m.results = append(m.results, msg)
 		return m, nil
 	case spinner.TickMsg:
@@ -79,7 +80,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 }
 
-func Report(results chan *Result, done chan bool) {
+func Report(results chan *task.Result, done chan bool) {
 	p := tea.NewProgram(newModel())
 	go func() {
 		for {
@@ -93,7 +94,7 @@ func Report(results chan *Result, done chan bool) {
 	}()
 
 	if _, err := p.Run(); err != nil {
-		fmt.Println("Error running program:", err)
+		fmt.Printf("Error running program: %e\n", err)
 		os.Exit(1)
 	}
 }
