@@ -24,5 +24,5 @@ Here are some of the devices I own:
 
 ## Installation
 
-You can download the latest release from the [release page](https://github.com/pawndev/img-resizer/releases).
+You can download the latest release from the [release page](https://github.com/pawndev/resizeboy/releases).
 This is a single binary, you can put it in your PATH and use it from anywhere (macOS, Windows, Linux).
