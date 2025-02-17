@@ -8,12 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
-
-type Result struct {
-	FileName string
-	Err      error
-}
 
 func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddSuffix bool) {
 	files, err := os.ReadDir(inputDir)
@@ -31,6 +27,7 @@ func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddS
 
 	swg := sizedwaitgroup.New(50)
 	resChan := make(chan *Result, len(files))
+	doneChan := make(chan bool)
 	for _, file := range files {
 		swg.Add()
 		if file.IsDir() {
@@ -40,11 +37,13 @@ func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddS
 
 		go func(dirEntry os.DirEntry) {
 			defer swg.Done()
+			start := time.Now()
 			res := &Result{
 				FileName: dirEntry.Name(),
 			}
 
 			defer func(result *Result) {
+				res.Duration = time.Since(start)
 				resChan <- res
 			}(res)
 
@@ -90,14 +89,20 @@ func App(inputDir, outputDir, fileSuffix, maxWidth, outFormat string, shouldAddS
 		}(file)
 	}
 
-	swg.Wait()
+	go func() {
+		swg.Wait()
+		doneChan <- true
+	}()
+
+	Report(resChan, doneChan)
+
 	close(resChan)
 
-	for res := range resChan {
-		if res.Err != nil {
-			fmt.Println("Error processing file: ", res.FileName, " - ", res.Err)
-		} else {
-			fmt.Println("Processed file: ", res.FileName)
-		}
-	}
+	//for res := range resChan {
+	//	if res.Err != nil {
+	//		fmt.Println("Error processing file: ", res.FileName, " - ", res.Err)
+	//	} else {
+	//		fmt.Println("Processed file: ", res.FileName)
+	//	}
+	//}
 }
