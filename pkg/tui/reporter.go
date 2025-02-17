@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/pawndev/minui-image-resizer/pkg/task"
+	"github.com/pawndev/resizeboy/pkg/task"
 )
 
 var (

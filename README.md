@@ -1,4 +1,4 @@
-# MinUImg
+# ResizeBoy
 
 MinUImg is a minimalistic TUI application written in go. Its purpose is to resize and convert images from png, jpg and
 webp formats to png and jpg formats.
@@ -13,7 +13,7 @@ Theses devices are amazing, they are cheap, have a lot of emulators and are very
 They usually run on linux or android. You can even install custom firmware on some of them.
 
 Here are some of the devices I own:
-- Miyoo Mini with OnionOS
+- Miyoo Mini Plus with OnionOS
 - Trimui Smart Pro with Crossmix and Knulli
 - Trimui Brick with Minui
 - And so much more...

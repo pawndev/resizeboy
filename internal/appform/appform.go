@@ -2,7 +2,7 @@ package appform
 
 import (
 	"errors"
-	"github.com/pawndev/minui-image-resizer/internal/vars"
+	"github.com/pawndev/resizeboy/internal/vars"
 	"os"
 	"strconv"
 

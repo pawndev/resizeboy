@@ -1,4 +1,4 @@
-module github.com/pawndev/minui-image-resizer
+module github.com/pawndev/resizeboy
 
 go 1.24
 

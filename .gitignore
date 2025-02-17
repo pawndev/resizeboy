@@ -4,4 +4,4 @@ dist/
 demo.tape
 img-resize.exe
 
-!/cmd/img-resize/main.go
+!/cmd/resizeboy/main.go

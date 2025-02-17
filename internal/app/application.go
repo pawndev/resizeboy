@@ -2,15 +2,15 @@ package app
 
 import (
 	"fmt"
-	"github.com/pawndev/minui-image-resizer/internal/vars"
+	"github.com/pawndev/resizeboy/internal/vars"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/pawndev/minui-image-resizer/pkg/img"
-	"github.com/pawndev/minui-image-resizer/pkg/task"
+	"github.com/pawndev/resizeboy/pkg/img"
+	"github.com/pawndev/resizeboy/pkg/task"
 	"github.com/remeh/sizedwaitgroup"
 )
 

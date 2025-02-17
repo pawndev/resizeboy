@@ -2,10 +2,10 @@ package main
 
 import (
 	"errors"
-	"github.com/pawndev/minui-image-resizer/internal/app"
+	"github.com/pawndev/resizeboy/internal/app"
 
-	"github.com/pawndev/minui-image-resizer/internal/appform"
-	"github.com/pawndev/minui-image-resizer/pkg/tui"
+	"github.com/pawndev/resizeboy/internal/appform"
+	"github.com/pawndev/resizeboy/pkg/tui"
 )
 
 func main() {
