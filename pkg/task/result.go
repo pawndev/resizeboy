@@ -1,16 +1,18 @@
-package main
+package task
 
 import (
 	"fmt"
-	"github.com/charmbracelet/lipgloss"
 	"strings"
 	"time"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
 var (
 	errStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
 	successStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#04B575"))
 	durationStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+	dotStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 )
 
 type Result struct {
@@ -21,6 +23,7 @@ type Result struct {
 
 func (r *Result) String() string {
 	if r.Duration == 0 {
+		//nolint:mnd // why would I want to extract this?
 		return dotStyle.Render(strings.Repeat(".", 30))
 	}
 	if r.Err != nil {
