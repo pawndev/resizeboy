@@ -1,6 +1,6 @@
 # ResizeBoy
 
-MinUImg is a minimalistic TUI application written in go. Its purpose is to resize and convert images from png, jpg and
+ResizeBoy is a minimalistic TUI application written in go. Its purpose is to resize and convert images from png, jpg and
 webp formats to png and jpg formats.
 
 I have made this application because I have way too many retro handhelds with multiple firmware. Some of them support png,
