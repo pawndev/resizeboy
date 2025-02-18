@@ -18,6 +18,8 @@ builds:
       - windows
       - darwin
     main: ./cmd/{{ .ProjectName }}/main.go
+    binary: resizeboy
+    id: resizeboy
 
 archives:
   - format: tar.gz
