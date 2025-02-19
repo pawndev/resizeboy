@@ -21,7 +21,7 @@ const (
 
 type App struct {
 	Vars   *vars.Vars
-	Report func(chan *task.Result, chan bool)
+	Report func(<-chan *task.Result)
 }
 
 func New(vars *vars.Vars) *App {
@@ -45,13 +45,12 @@ func (a *App) Run() {
 	}
 
 	swg := sizedwaitgroup.New(MaxGoRoutines)
-	resChan := make(chan *task.Result, len(files))
-	doneChan := make(chan bool)
+	resChan := make(chan *task.Result)
 	for _, file := range files {
-		swg.Add()
 		if file.IsDir() {
 			continue
 		}
+		swg.Add()
 
 		go func(dirEntry os.DirEntry) {
 			defer swg.Done()
@@ -110,10 +109,8 @@ func (a *App) Run() {
 
 	go func() {
 		swg.Wait()
-		doneChan <- true
+		close(resChan)
 	}()
 
-	a.Report(resChan, doneChan)
-
-	close(resChan)
+	a.Report(resChan)
 }

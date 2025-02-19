@@ -80,17 +80,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 }
 
-func Report(results chan *task.Result, done chan bool) {
+func Report(results <-chan *task.Result) {
 	p := tea.NewProgram(newModel())
 	go func() {
-		for {
-			select {
-			case r := <-results:
-				p.Send(r)
-			case <-done:
-				p.Send(tea.KeyMsg{Type: tea.KeyEnter})
-			}
+		for r := range results {
+			p.Send(r)
 		}
+		p.Send(tea.KeyMsg{Type: tea.KeyEnter})
 	}()
 
 	if _, err := p.Run(); err != nil {

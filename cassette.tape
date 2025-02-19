@@ -11,7 +11,7 @@ Set Height 800
 #Enter
 #Sleep 2s
 
-Type "go run ./cmd/img-resize"
+Type "go run ./cmd/resizeboy"
 Enter
 Sleep 2s
 
