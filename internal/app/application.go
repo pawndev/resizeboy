@@ -45,7 +45,7 @@ func (a *App) Run() {
 	}
 
 	swg := sizedwaitgroup.New(MaxGoRoutines)
-	resChan := make(chan *task.Result, len(files))
+	resChan := make(chan *task.Result)
 	for _, file := range files {
 		if file.IsDir() {
 			continue
