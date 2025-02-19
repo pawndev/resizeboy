@@ -21,7 +21,7 @@ const (
 
 type App struct {
 	Vars   *vars.Vars
-	Report func(chan *task.Result, chan bool)
+	Report func(<-chan *task.Result)
 }
 
 func New(vars *vars.Vars) *App {
@@ -109,10 +109,8 @@ func (a *App) Run() {
 
 	go func() {
 		swg.Wait()
-		doneChan <- true
+		close(resChan)
 	}()
 
-	a.Report(resChan, doneChan)
-
-	close(resChan)
+	a.Report(resChan)
 }
