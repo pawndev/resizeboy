@@ -87,7 +87,6 @@ func Report(results <-chan *task.Result) {
 			p.Send(r)
 		}
 		p.Send(tea.KeyMsg{Type: tea.KeyEnter})
-
 	}()
 
 	if _, err := p.Run(); err != nil {
